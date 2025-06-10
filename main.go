@@ -31,8 +31,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Database connection string (replace with your actual credentials)
-	// Example: "user:password@tcp(127.0.0.1:3306)/database_name"
+	// initialize connection to beampass user db with dbURI, e.g.
+	// user:password@tcp(127.0.0.1:3306)/database_name
 	initDB(conf.DBUri)
 	defer db.Close()
 
@@ -40,7 +40,7 @@ func main() {
 	http.HandleFunc("/btr", BtrHandler)
 
 	// Start the web server
-	port := ":8080"
+	port := fmt.Sprintf(":%d", conf.Port)
 	fmt.Printf("Server listening on port %s\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
