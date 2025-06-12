@@ -32,7 +32,6 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	var results []BTRData
 	for rows.Next() {
 		var data BTRData
-		var fileID, stime, etime string
 		if err := rows.Scan(&data.ScheduleEntryFileID, &data.ResourceName, &data.StartDatetime, &data.EndDatetime); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
