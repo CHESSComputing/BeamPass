@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 // BTRData struct to hold the results of the MySQL query
 type BTRData struct {
-	ScheduleEntryFileID int       `json:"schedule_entry_file_id"`
-	ResourceName        string    `json:"resource_name"`
-	StartDatetime       time.Time `json:"start_datetime"`
-	EndDatetime         time.Time `json:"end_datetime"`
+	ScheduleEntryFileID string `json:"schedule_entry_file_id"`
+	ResourceName        string `json:"resource_name"`
+	StartDatetime       string `json:"start_datetime"`
+	EndDatetime         string `json:"end_datetime"`
 }
 
 // getBTR performs the MySQL query and returns the results
@@ -33,6 +32,7 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	var results []BTRData
 	for rows.Next() {
 		var data BTRData
+		var fileID, stime, etime string
 		if err := rows.Scan(&data.ScheduleEntryFileID, &data.ResourceName, &data.StartDatetime, &data.EndDatetime); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
