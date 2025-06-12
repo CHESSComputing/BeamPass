@@ -6,16 +6,16 @@ import (
 
 // BTRData struct to hold the results of the MySQL query
 type BTRData struct {
-	ScheduleEntryFileID string `json:"schedule_entry_file_id"`
-	ResourceName        string `json:"resource_name"`
-	StartDatetime       string `json:"start_datetime"`
-	EndDatetime         string `json:"end_datetime"`
+	Btr           string `json:"btr"`
+	Beamline  string `json:"beamline"`
+	StartDatetime string `json:"start_datetime"`
+	EndDatetime   string `json:"end_datetime"`
 }
 
 // getBTR performs the MySQL query and returns the results
 func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	query := `
-		SELECT br.schedule_entry_file_id, r.name, se.start_datetime, se.end_datetime
+		SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
 		FROM beampass.resource r
 		JOIN beampass.schedule_entry se ON se.resource_id = r.id
 		JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
@@ -32,7 +32,7 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	var results []BTRData
 	for rows.Next() {
 		var data BTRData
-		if err := rows.Scan(&data.ScheduleEntryFileID, &data.ResourceName, &data.StartDatetime, &data.EndDatetime); err != nil {
+		if err := rows.Scan(&data.Btr, &data.Beamline, &data.StartDatetime, &data.EndDatetime); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		results = append(results, data)
