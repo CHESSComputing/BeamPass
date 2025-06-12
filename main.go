@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 )
@@ -19,7 +20,8 @@ func main() {
 	var version bool
 	flag.BoolVar(&version, "version", false, "Show version")
 	var config string
-	flag.StringVar(&config, "config", "", "server config file")
+	cfile := fmt.Sprintf("%s/.beampass.json", os.Getenv("HOME"))
+	flag.StringVar(&config, "config", cfile, "server config file")
 	flag.Parse()
 	if version {
 		fmt.Println("server version:", Info())
