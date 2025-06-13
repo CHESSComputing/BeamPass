@@ -13,7 +13,7 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse query parameters
-	resourceName := r.URL.Query().Get("beamline")
+	beamline := r.URL.Query().Get("beamline")
 	startTimeStr := r.URL.Query().Get("start_time")
 	endTimeStr := r.URL.Query().Get("end_time")
 
@@ -29,13 +29,13 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate parameters
-	if resourceName == "" || startTimeStr == "" || endTimeStr == "" {
-		http.Error(w, `{"error": "Missing required parameters: name, start_time, and end_time"}`, http.StatusBadRequest)
+	if beamline == "" {
+		http.Error(w, `{"error": "Missing required parameters: beamline"}`, http.StatusBadRequest)
 		return
 	}
 
 	// Execute the getBTR function
-	data, err := getBTR(resourceName, startTimeStr, endTimeStr)
+	data, err := getBTR(beamline, startTimeStr, endTimeStr)
 	if err != nil {
 		log.Printf("Error in getBTR: %v", err)
 		http.Error(w, fmt.Sprintf(`{"error": "Internal server error: %s"}`, err.Error()), http.StatusInternalServerError)
