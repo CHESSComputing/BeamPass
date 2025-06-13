@@ -40,7 +40,7 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline, startTime)
-	} else if startTime == "" && endTime == "" {
+	} else if startTime == "" && endTime == "" && dateTime == "" {
 		query = `
 			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
 			FROM beampass.resource r
