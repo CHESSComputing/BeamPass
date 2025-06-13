@@ -25,7 +25,7 @@ func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
 		ORDER BY se.start_datetime;
 	`
 	if _verbose > 0 {
-		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", beamline, startTime, endTime)
+		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
 	}
 
 	rows, err := db.Query(query, beamline, startTime, endTime)
