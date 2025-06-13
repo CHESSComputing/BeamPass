@@ -16,6 +16,7 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	beamline := r.URL.Query().Get("beamline")
 	startTimeStr := r.URL.Query().Get("start_time")
 	endTimeStr := r.URL.Query().Get("end_time")
+	dateTimeStr := r.URL.Query().Get("date_time")
 
 	var err error
 
@@ -27,15 +28,23 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid end_time format", http.StatusBadRequest)
 		return
 	}
+	if dateTimeStr, err = parseDate(dateTimeStr); err != nil {
+		http.Error(w, "Invalid date_time format", http.StatusBadRequest)
+		return
+	}
 
 	// Validate parameters
 	if beamline == "" {
 		http.Error(w, `{"error": "Missing required parameters: beamline"}`, http.StatusBadRequest)
 		return
 	}
+	if dateTimeStr != "" && (startTimeStr != "" || endTimeStr != "") {
+		http.Error(w, `{"error": "You cannot have date_time and either start_time and end_time together"}`, http.StatusBadRequest)
+		return
+	}
 
 	// Execute the getBTR function
-	data, err := getBTR(beamline, startTimeStr, endTimeStr)
+	data, err := getBTR(beamline, startTimeStr, endTimeStr, dateTimeStr)
 	if err != nil {
 		log.Printf("Error in getBTR: %v", err)
 		http.Error(w, fmt.Sprintf(`{"error": "Internal server error: %s"}`, err.Error()), http.StatusInternalServerError)

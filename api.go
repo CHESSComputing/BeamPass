@@ -16,7 +16,7 @@ type BTRData struct {
 }
 
 // getBTR performs the MySQL query and returns the results
-func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
+func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, error) {
 	var err error
 	var query string
 	var rows *sql.Rows
@@ -50,6 +50,16 @@ func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline)
+	} else if dateTime != "" {
+		query = `
+			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
+			FROM beampass.resource r
+			JOIN beampass.schedule_entry se ON se.resource_id = r.id
+			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
+			ORDER BY se.start_datetime;
+		`
+		rows, err = db.Query(query, beamline, dateTime, dateTime)
 	}
 	if _verbose > 0 {
 		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
