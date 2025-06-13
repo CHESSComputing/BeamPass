@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
 // BTRData struct to hold the results of the MySQL query
 type BTRData struct {
-	Btr           string `json:"btr"`
-	Beamline      string `json:"beamline"`
-	StartDatetime string `json:"start_datetime"`
-	EndDatetime   string `json:"end_datetime"`
+	Btr       string `json:"btr"`
+	Beamline  string `json:"beamline"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
 }
 
 // getBTR performs the MySQL query and returns the results
-func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
+func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
 	query := `
 		SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
 		FROM beampass.resource r
@@ -23,8 +24,11 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 		WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
 		ORDER BY se.start_datetime;
 	`
+	if _verbose > 0 {
+		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", beamline, startTime, endTime)
+	}
 
-	rows, err := db.Query(query, resourceName, startTime, endTime)
+	rows, err := db.Query(query, beamline, startTime, endTime)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
@@ -33,7 +37,7 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	var results []BTRData
 	for rows.Next() {
 		var data BTRData
-		if err := rows.Scan(&data.Btr, &data.Beamline, &data.StartDatetime, &data.EndDatetime); err != nil {
+		if err := rows.Scan(&data.Btr, &data.Beamline, &data.StartTime, &data.EndTime); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		results = append(results, data)

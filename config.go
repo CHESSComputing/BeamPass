@@ -7,9 +7,13 @@ import (
 	"os"
 )
 
+// global variable
+var _verbose int
+
 type Config struct {
-	DBUri string
-	Port  int
+	DBUri   string
+	Port    int
+	Verbose int
 }
 
 func parseConfig(fname string) (Config, error) {
@@ -26,5 +30,6 @@ func parseConfig(fname string) (Config, error) {
 
 	var c Config
 	err = json.Unmarshal(data, &c)
+	_verbose = c.Verbose
 	return c, err
 }
