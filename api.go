@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -16,19 +17,44 @@ type BTRData struct {
 
 // getBTR performs the MySQL query and returns the results
 func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
-	query := `
-		SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
-		FROM beampass.resource r
-		JOIN beampass.schedule_entry se ON se.resource_id = r.id
-		JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-		WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
-		ORDER BY se.start_datetime;
-	`
+	var err error
+	var query string
+	var rows *sql.Rows
+	if startTime != "" && endTime != "" {
+		query = `
+			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
+			FROM beampass.resource r
+			JOIN beampass.schedule_entry se ON se.resource_id = r.id
+			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
+			ORDER BY se.start_datetime;
+		`
+		rows, err = db.Query(query, beamline, startTime, endTime)
+	} else if startTime != "" && endTime == "" {
+		query = `
+			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
+			FROM beampass.resource r
+			JOIN beampass.schedule_entry se ON se.resource_id = r.id
+			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime > NOW()
+			ORDER BY se.start_datetime;
+		`
+		rows, err = db.Query(query, beamline, startTime)
+	} else if startTime == "" && endTime == "" {
+		query = `
+			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
+			FROM beampass.resource r
+			JOIN beampass.schedule_entry se ON se.resource_id = r.id
+			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < NOW() AND se.end_datetime > NOW()
+			ORDER BY se.start_datetime;
+		`
+		rows, err = db.Query(query, beamline)
+	}
 	if _verbose > 0 {
 		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
 	}
 
-	rows, err := db.Query(query, beamline, startTime, endTime)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
@@ -50,10 +76,21 @@ func getBTR(beamline string, startTime, endTime string) ([]BTRData, error) {
 	return results, nil
 }
 
-func parseDate(s string) (time.Time, error) {
+func parseDate(s string) (string, error) {
+	const layout = "2006-01-02 15:04:05"
+	var err error
+	if s == "" {
+		return s, nil
+	}
+	var tstmp time.Time
 	if len(s) == 8 {
 		// Format: YYYYMMDD
-		return time.ParseInLocation("20060102", s, time.Local)
+		tstmp, err = time.ParseInLocation("20060102", s, time.Local)
+	} else {
+		tstmp, err = time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
 	}
-	return time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
+	if err != nil {
+		return "", err
+	}
+	return tstmp.Format(layout), nil
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 )
 
 // BtrHandler handles the /btr endpoint
@@ -14,44 +13,20 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse query parameters
-	const layout = "2006-01-02 15:04:05"
-	const shortLayout = "20060102"
-
 	resourceName := r.URL.Query().Get("beamline")
 	startTimeStr := r.URL.Query().Get("start_time")
 	endTimeStr := r.URL.Query().Get("end_time")
 
-	var startTime, endTime time.Time
 	var err error
 
-	now := time.Now()
-	// Case 1: Neither start nor end provided
-	if startTimeStr == "" && endTimeStr == "" {
-		endTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-		startTime = endTime.Add(-24 * time.Hour)
-	} else if startTimeStr != "" && endTimeStr == "" {
-		// Case 2: start provided, end not
-		startTime, err = parseDate(startTimeStr)
-		if err != nil {
-			http.Error(w, "Invalid start_time format", http.StatusBadRequest)
-			return
-		}
-		endTime = startTime.Add(24 * time.Hour)
-	} else {
-		// Case 3: both start and end provided
-		startTime, err = parseDate(startTimeStr)
-		if err != nil {
-			http.Error(w, "Invalid start_time format", http.StatusBadRequest)
-			return
-		}
-		endTime, err = parseDate(endTimeStr)
-		if err != nil {
-			http.Error(w, "Invalid end_time format", http.StatusBadRequest)
-			return
-		}
+	if startTimeStr, err = parseDate(startTimeStr); err != nil {
+		http.Error(w, "Invalid end_time format", http.StatusBadRequest)
+		return
 	}
-	startTimeStr = startTime.Format(layout)
-	endTimeStr = endTime.Format(layout)
+	if endTimeStr, err = parseDate(endTimeStr); err != nil {
+		http.Error(w, "Invalid end_time format", http.StatusBadRequest)
+		return
+	}
 
 	// Validate parameters
 	if resourceName == "" || startTimeStr == "" || endTimeStr == "" {
