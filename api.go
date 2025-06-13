@@ -30,6 +30,9 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline, startTime, endTime)
+		if _verbose > 0 {
+			log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
+		}
 	} else if startTime != "" && endTime == "" {
 		query = `
 			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
@@ -40,6 +43,9 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline, startTime)
+		if _verbose > 0 {
+			log.Printf("QUERY: %s, beamline=%s startTime=%s", query, beamline, startTime)
+		}
 	} else if startTime == "" && endTime == "" && dateTime == "" {
 		query = `
 			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
@@ -50,6 +56,9 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline)
+		if _verbose > 0 {
+			log.Printf("QUERY: %s, beamline=%s", query, beamline)
+		}
 	} else if dateTime != "" {
 		query = `
 			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
@@ -60,9 +69,9 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline, dateTime, dateTime)
-	}
-	if _verbose > 0 {
-		log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
+		if _verbose > 0 {
+			log.Printf("QUERY: %s, beamline=%s dateTme=%s dateTime=%s", query, beamline, dateTime, dateTime)
+		}
 	}
 
 	if err != nil {
