@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 // BTRData struct to hold the results of the MySQL query
 type BTRData struct {
 	Btr           string `json:"btr"`
-	Beamline  string `json:"beamline"`
+	Beamline      string `json:"beamline"`
 	StartDatetime string `json:"start_datetime"`
 	EndDatetime   string `json:"end_datetime"`
 }
@@ -43,4 +44,12 @@ func getBTR(resourceName string, startTime, endTime string) ([]BTRData, error) {
 	}
 
 	return results, nil
+}
+
+func parseDate(s string) (time.Time, error) {
+	if len(s) == 8 {
+		// Format: YYYYMMDD
+		return time.ParseInLocation("20060102", s, time.Local)
+	}
+	return time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
 }
