@@ -56,7 +56,7 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 			FROM beampass.resource r
 			JOIN beampass.schedule_entry se ON se.resource_id = r.id
 			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
+			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < ? AND se.end_datetime > ?
 			ORDER BY se.start_datetime;
 		`
 		rows, err = db.Query(query, beamline, dateTime, dateTime)
