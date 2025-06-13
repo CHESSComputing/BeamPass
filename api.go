@@ -86,6 +86,9 @@ func parseDate(s string) (string, error) {
 	if len(s) == 8 {
 		// Format: YYYYMMDD
 		tstmp, err = time.ParseInLocation("20060102", s, time.Local)
+	} else if len(s) == 10 {
+		// Format: YYYY-MM-DD
+		tstmp, err = time.ParseInLocation("2006-01-02", s, time.Local)
 	} else {
 		tstmp, err = time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
 	}
