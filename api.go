@@ -11,6 +11,7 @@ import (
 type BTRData struct {
 	Btr       string `json:"btr"`
 	Beamline  string `json:"beamline"`
+	PI        string `json:"pi"`
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
 }
@@ -22,52 +23,64 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 	var rows *sql.Rows
 	if startTime != "" && endTime != "" {
 		query = `
-			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
-			FROM beampass.resource r
-			JOIN beampass.schedule_entry se ON se.resource_id = r.id
-			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
-			ORDER BY se.start_datetime;
-		`
+                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
+                        FROM beampass.resource r
+                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
+                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+                        JOIN beampass.project p ON br.project_id = p.id
+                        JOIN beampass.affiliation a ON p.lead_id = a.id
+                        JOIN beampass.person pn ON a.person_id = pn.id
+                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
+                        ORDER BY se.start_datetime;
+                `
 		rows, err = db.Query(query, beamline, startTime, endTime)
 		if _verbose > 0 {
 			log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
 		}
 	} else if startTime != "" && endTime == "" {
 		query = `
-			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
-			FROM beampass.resource r
-			JOIN beampass.schedule_entry se ON se.resource_id = r.id
-			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ?
-			ORDER BY se.start_datetime;
-		`
+                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
+                        FROM beampass.resource r
+                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
+                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+                        JOIN beampass.project p ON br.project_id = p.id
+                        JOIN beampass.affiliation a ON p.lead_id = a.id
+                        JOIN beampass.person pn ON a.person_id = pn.id
+                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ?
+                        ORDER BY se.start_datetime;
+                `
 		rows, err = db.Query(query, beamline, startTime)
 		if _verbose > 0 {
 			log.Printf("QUERY: %s, beamline=%s startTime=%s", query, beamline, startTime)
 		}
 	} else if startTime == "" && endTime == "" && dateTime == "" {
 		query = `
-			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
-			FROM beampass.resource r
-			JOIN beampass.schedule_entry se ON se.resource_id = r.id
-			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < NOW()
-			ORDER BY se.start_datetime;
-		`
+                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
+                        FROM beampass.resource r
+                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
+                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+                        JOIN beampass.project p ON br.project_id = p.id
+                        JOIN beampass.affiliation a ON p.lead_id = a.id
+                        JOIN beampass.person pn ON a.person_id = pn.id
+                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < NOW()
+                        ORDER BY se.start_datetime;
+                `
 		rows, err = db.Query(query, beamline)
 		if _verbose > 0 {
 			log.Printf("QUERY: %s, beamline=%s", query, beamline)
 		}
 	} else if dateTime != "" {
 		query = `
-			SELECT br.schedule_entry_file_id as btr, r.name as beamline, se.start_datetime, se.end_datetime
-			FROM beampass.resource r
-			JOIN beampass.schedule_entry se ON se.resource_id = r.id
-			JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-			WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < ? AND se.end_datetime > ?
-			ORDER BY se.start_datetime;
-		`
+                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
+                        FROM beampass.resource r
+                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
+                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+                        JOIN beampass.project p ON br.project_id = p.id
+                        JOIN beampass.affiliation a ON p.lead_id = a.id
+                        JOIN beampass.person pn ON a.person_id = pn.id
+                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < ? AND se.end_datetime > ?
+                        ORDER BY se.start_datetime;
+                `
 		rows, err = db.Query(query, beamline, dateTime, dateTime)
 		if _verbose > 0 {
 			log.Printf("QUERY: %s, beamline=%s dateTme=%s dateTime=%s", query, beamline, dateTime, dateTime)
@@ -82,7 +95,7 @@ func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, er
 	var results []BTRData
 	for rows.Next() {
 		var data BTRData
-		if err := rows.Scan(&data.Btr, &data.Beamline, &data.StartTime, &data.EndTime); err != nil {
+		if err := rows.Scan(&data.Btr, &data.Beamline, &data.PI, &data.StartTime, &data.EndTime); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		results = append(results, data)
