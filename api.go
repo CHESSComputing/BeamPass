@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"slices"
 	"time"
 )
 
@@ -18,7 +19,7 @@ type BTRData struct {
 }
 
 // getBTR performs the MySQL query and returns the results
-func getBTR(btr, beamline, startTime, endTime, dateTime string) ([]BTRData, error) {
+func getBTR(btrs []string, beamline, startTime, endTime, dateTime string) ([]BTRData, error) {
 	var err error
 	var rows *sql.Rows
 
@@ -47,9 +48,11 @@ func getBTR(btr, beamline, startTime, endTime, dateTime string) ([]BTRData, erro
 		queryArgs = append(queryArgs, beamline)
 	}
 
-	if btr != "" {
-		whereClauses = append(whereClauses, "br.schedule_entry_file_id IN (?)")
-		queryArgs = append(queryArgs, btr)
+	if btrs != nil {
+		whereClauses = append(whereClauses, "br.schedule_entry_file_id IN (" + strings.Join(slices.Repeat([]string{"?"}, len(btrs)), ",") + ")")
+		for _, btr := range(btrs) {
+			queryArgs = append(queryArgs, btr)
+		}
 	}
 
 	if dateTime != "" {
