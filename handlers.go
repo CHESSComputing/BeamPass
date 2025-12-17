@@ -35,10 +35,6 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate parameters
-	if beamline == "" {
-		http.Error(w, `{"error": "Missing required parameters: beamline"}`, http.StatusBadRequest)
-		return
-	}
 	if dateTimeStr != "" && (startTimeStr != "" || endTimeStr != "") {
 		http.Error(w, `{"error": "You cannot have date_time and either start_time and end_time together"}`, http.StatusBadRequest)
 		return
