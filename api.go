@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -76,7 +77,7 @@ func getBTR(btr, beamline, startTime, endTime, dateTime string) ([]BTRData, erro
 		log.Printf("QUERY: %s, queryArgs=%v", query, queryArgs)
 	}
 
-	rows, err := db.Query(query, queryArgs...)
+	rows, err = db.Query(query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
