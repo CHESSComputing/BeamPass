@@ -17,76 +17,66 @@ type BTRData struct {
 }
 
 // getBTR performs the MySQL query and returns the results
-func getBTR(beamline string, startTime, endTime, dateTime string) ([]BTRData, error) {
+func getBTR(btr, beamline, startTime, endTime, dateTime string) ([]BTRData, error) {
 	var err error
-	var query string
 	var rows *sql.Rows
-	if startTime != "" && endTime != "" {
-		query = `
-                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
-                        FROM beampass.resource r
-                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
-                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-                        JOIN beampass.project p ON br.project_id = p.id
-                        JOIN beampass.affiliation a ON p.lead_id = a.id
-                        JOIN beampass.person pn ON a.person_id = pn.id
-                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ? AND se.end_datetime <= ?
-                        ORDER BY se.start_datetime;
-                `
-		rows, err = db.Query(query, beamline, startTime, endTime)
-		if _verbose > 0 {
-			log.Printf("QUERY: %s, beamline=%s startTime=%s endTime=%s", query, beamline, startTime, endTime)
+
+	// Common to all queries, no matter the user parameters
+	baseQuery := `
+				SELECT
+            br.schedule_entry_file_id AS btr,
+            r.name AS beamline,
+            pn.last_name,
+            se.start_datetime,
+            se.end_datetime
+        FROM beampass.resource r
+        JOIN beampass.schedule_entry se ON se.resource_id = r.id
+        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
+        JOIN beampass.project p ON br.project_id = p.id
+        JOIN beampass.affiliation a ON p.lead_id = a.id
+        JOIN beampass.person pn ON a.person_id = pn.id
+    `
+	var whereClauses []string
+	var queryArgs []any
+
+	whereClauses = append(whereClauses, "se.is_actual = true")
+
+	if beamline != "" {
+		whereClauses = append(whereClauses, "r.name = ?")
+		queryArgs = append(queryArgs, beamline)
+	}
+
+	if btr != "" {
+		whereClauses = append(whereClauses, "br.schedule_entry_file_id IN (?)")
+		queryArgs = append(queryArgs, btr)
+	}
+
+	if dateTime != "" {
+		whereClauses = append(whereClauses, "se.start_datetime < ? AND se.end_datetime > ?")
+		queryArgs = append(queryArgs, dateTime, dateTime)
+	} else {
+		if startTime != "" {
+			whereClauses = append(whereClauses, "se.start_datetime >= ?")
+			queryArgs = append(queryArgs, startTime)
 		}
-	} else if startTime != "" && endTime == "" {
-		query = `
-                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
-                        FROM beampass.resource r
-                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
-                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-                        JOIN beampass.project p ON br.project_id = p.id
-                        JOIN beampass.affiliation a ON p.lead_id = a.id
-                        JOIN beampass.person pn ON a.person_id = pn.id
-                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime >= ?
-                        ORDER BY se.start_datetime;
-                `
-		rows, err = db.Query(query, beamline, startTime)
-		if _verbose > 0 {
-			log.Printf("QUERY: %s, beamline=%s startTime=%s", query, beamline, startTime)
-		}
-	} else if startTime == "" && endTime == "" && dateTime == "" {
-		query = `
-                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
-                        FROM beampass.resource r
-                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
-                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-                        JOIN beampass.project p ON br.project_id = p.id
-                        JOIN beampass.affiliation a ON p.lead_id = a.id
-                        JOIN beampass.person pn ON a.person_id = pn.id
-                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < NOW()
-                        ORDER BY se.start_datetime;
-                `
-		rows, err = db.Query(query, beamline)
-		if _verbose > 0 {
-			log.Printf("QUERY: %s, beamline=%s", query, beamline)
-		}
-	} else if dateTime != "" {
-		query = `
-                        SELECT br.schedule_entry_file_id as btr, r.name as beamline, pn.last_name, se.start_datetime, se.end_datetime
-                        FROM beampass.resource r
-                        JOIN beampass.schedule_entry se ON se.resource_id = r.id
-                        JOIN beampass.beamtime_request br ON se.beamtime_request_id = br.id
-                        JOIN beampass.project p ON br.project_id = p.id
-                        JOIN beampass.affiliation a ON p.lead_id = a.id
-                        JOIN beampass.person pn ON a.person_id = pn.id
-                        WHERE r.name = ? AND se.is_actual = true AND se.start_datetime < ? AND se.end_datetime > ?
-                        ORDER BY se.start_datetime;
-                `
-		rows, err = db.Query(query, beamline, dateTime, dateTime)
-		if _verbose > 0 {
-			log.Printf("QUERY: %s, beamline=%s dateTme=%s dateTime=%s", query, beamline, dateTime, dateTime)
+
+		if endTime != "" {
+			whereClauses = append(whereClauses, "se.end_datetime <= ?")
+			queryArgs = append(queryArgs, endTime)
 		}
 	}
 
+	query := baseQuery
+	if len(whereClauses) > 0 {
+		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+	query += " ORDER BY se.start_datetime;"
+
+	if _verbose > 0 {
+		log.Printf("QUERY: %s, queryArgs=%v", query, queryArgs)
+	}
+
+	rows, err := db.Query(query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}

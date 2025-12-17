@@ -13,6 +13,7 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse query parameters
+	btr := r.URL.Query().Get("btr")
 	beamline := r.URL.Query().Get("beamline")
 	startTimeStr := r.URL.Query().Get("start_time")
 	endTimeStr := r.URL.Query().Get("end_time")
@@ -44,7 +45,7 @@ func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the getBTR function
-	data, err := getBTR(beamline, startTimeStr, endTimeStr, dateTimeStr)
+	data, err := getBTR(btr, beamline, startTimeStr, endTimeStr, dateTimeStr)
 	if err != nil {
 		log.Printf("Error in getBTR: %v", err)
 		http.Error(w, fmt.Sprintf(`{"error": "Internal server error: %s"}`, err.Error()), http.StatusInternalServerError)
