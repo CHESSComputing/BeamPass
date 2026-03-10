@@ -112,7 +112,7 @@ func parseDate(s string) (string, error) {
 		tstmp, err = time.ParseInLocation("2006-01-02 15:04:05", s, time.Local)
 	}
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("[BeamPass.main.parseDate] time.ParseInLocation error: %w", err)
 	}
 	return tstmp.Format(layout), nil
 }
