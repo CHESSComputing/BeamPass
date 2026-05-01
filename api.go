@@ -150,7 +150,7 @@ a.department
 FROM person p
 JOIN affiliation a
 ON p.id = a.person_id
-JOIN countries c
+JOIN country c
 ON p.country_id = c.id
 WHERE a.archived_datetime IS NULL
 `
