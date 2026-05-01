@@ -144,7 +144,7 @@ func getAffiliations(uids []string) []UserInfo {
 	var results []UserInfo
 	query := `
 SELECT
-p.first_name, p.last_name, p.email, p.orcid_id, p.organization, p.city, p.zip,
+p.classe_id, p.first_name, p.last_name, p.email, p.orcid_id, p.organization, p.city, p.zip,
 c.name,
 a.department 
 FROM person p
