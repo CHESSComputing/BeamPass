@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -49,8 +49,8 @@ func getBTR(btrs []string, beamline, startTime, endTime, dateTime string) ([]BTR
 	}
 
 	if btrs != nil {
-		whereClauses = append(whereClauses, "br.schedule_entry_file_id IN (" + strings.Join(slices.Repeat([]string{"?"}, len(btrs)), ",") + ")")
-		for _, btr := range(btrs) {
+		whereClauses = append(whereClauses, "br.schedule_entry_file_id IN ("+strings.Join(slices.Repeat([]string{"?"}, len(btrs)), ",")+")")
+		for _, btr := range btrs {
 			queryArgs = append(queryArgs, btr)
 		}
 	}
@@ -122,4 +122,51 @@ func parseDate(s string) (string, error) {
 		return "", fmt.Errorf("[BeamPass.main.parseDate] time.ParseInLocation error: %w", err)
 	}
 	return tstmp.Format(layout), nil
+}
+
+type UserInfo struct {
+	Uid         string
+	Name        string
+	Affiliation []string
+}
+
+func getAffiliations(uids []string) []UserInfo {
+	var err error
+	var rows *sql.Rows
+	var results []UserInfo
+	query := `
+SELECT *
+FROM person p
+JOIN affiliation a
+ON p.id = a.person_id
+WHERE a.archived_datetime IS NULL
+AND [condition]
+`
+
+	var whereClauses []string
+	var queryArgs []any
+
+	whereClauses = append(whereClauses, "p.uid IN ("+strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",")+")")
+	for _, uid := range uids {
+		queryArgs = append(queryArgs, uid)
+	}
+	if len(whereClauses) > 0 {
+		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	rows, err = db.Query(query, queryArgs...)
+	if err != nil {
+		log.Printf("ERROR: executing query: %v", err)
+		return results
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var data UserInfo
+		if err := rows.Scan(&data.Uid, &data.Name, &data.Affiliation); err != nil {
+			log.Printf("ERROR: scanning row: %v", err)
+		}
+		results = append(results, data)
+	}
+	return results
 }

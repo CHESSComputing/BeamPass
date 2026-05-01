@@ -34,12 +34,12 @@ func main() {
 	}
 
 	// initialize connection to beampass user db with dbURI, e.g.
-	// user:password@tcp(127.0.0.1:3306)/database_name
 	initDB(conf.DBUri)
 	defer db.Close()
 
-	// Register the handler for the /btr endpoint
+	// Register handlers
 	http.HandleFunc("/btr", BtrHandler)
+	http.HandleFunc("/affiliations", AffHandler)
 
 	// Start the web server
 	port := fmt.Sprintf(":%d", conf.Port)

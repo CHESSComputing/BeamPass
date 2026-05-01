@@ -7,6 +7,24 @@ import (
 	"net/http"
 )
 
+// AffHandler handles the /aff endpoint
+func AffHandler(w http.ResponseWriter, r *http.Request) {
+	// Set content type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse query parameters
+	uids, _ := r.URL.Query()["uids"]
+
+	// Execute the getBTR function
+	data := getAffiliations(uids)
+
+	// Encode and send the response
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("Error encoding JSON response: %v", err)
+		http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
+	}
+}
+
 // BtrHandler handles the /btr endpoint
 func BtrHandler(w http.ResponseWriter, r *http.Request) {
 	// Set content type to JSON
