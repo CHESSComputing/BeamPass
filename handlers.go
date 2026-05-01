@@ -13,7 +13,7 @@ func AffHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse query parameters
-	uids, _ := r.URL.Query()["uids"]
+	uids, _ := r.URL.Query()["uid"]
 
 	// Execute the getBTR function
 	data := getAffiliations(uids)
