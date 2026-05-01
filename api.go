@@ -124,10 +124,18 @@ func parseDate(s string) (string, error) {
 	return tstmp.Format(layout), nil
 }
 
+// UserInfo represents user info in BeamPass database
 type UserInfo struct {
-	Uid         string
-	Name        string
-	Affiliation []string
+	UID          string `json:"uid"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	Email        string `json:"email"`
+	OrchidId     string `json:"orchid_id"`
+	Organization string `json:"organization"`
+	City         string `json:"city"`
+	Zip          string `json:"zip"`
+	Country      string `json:"country"`
+	Department   string `json:"department"`
 }
 
 func getAffiliations(uids []string) []UserInfo {
@@ -135,23 +143,27 @@ func getAffiliations(uids []string) []UserInfo {
 	var rows *sql.Rows
 	var results []UserInfo
 	query := `
-SELECT *
+SELECT
+p.first_name, p.last_name, p.email, p.orcid_id, p.organization, p.city, p.zip,
+c.name,
+a.department 
 FROM person p
 JOIN affiliation a
 ON p.id = a.person_id
+JOIN countries c
+ON p.country_id = c.id
 WHERE a.archived_datetime IS NULL
-AND [condition]
 `
 
 	var whereClauses []string
 	var queryArgs []any
 
-	whereClauses = append(whereClauses, "p.uid IN ("+strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",")+")")
+	whereClauses = append(whereClauses, "p.classe_id IN ("+strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",")+")")
 	for _, uid := range uids {
 		queryArgs = append(queryArgs, uid)
 	}
 	if len(whereClauses) > 0 {
-		query += " WHERE " + strings.Join(whereClauses, " AND ")
+		query += strings.Join(whereClauses, " AND ")
 	}
 
 	rows, err = db.Query(query, queryArgs...)
@@ -163,7 +175,10 @@ AND [condition]
 
 	for rows.Next() {
 		var data UserInfo
-		if err := rows.Scan(&data.Uid, &data.Name, &data.Affiliation); err != nil {
+		if err := rows.Scan(&data.UID,
+			&data.FirstName, &data.LastName, &data.Email, &data.OrchidId,
+			&data.Organization, &data.City, &data.Zip, &data.Country,
+			&data.Department); err != nil {
 			log.Printf("ERROR: scanning row: %v", err)
 		}
 		results = append(results, data)
