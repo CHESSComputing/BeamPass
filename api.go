@@ -155,16 +155,12 @@ ON p.country_id = c.id
 WHERE a.archived_datetime IS NULL
 `
 
-	var whereClauses []string
 	var queryArgs []any
 
-	whereClauses = append(whereClauses, "p.classe_id IN ("+strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",")+")")
 	for _, uid := range uids {
 		queryArgs = append(queryArgs, uid)
 	}
-	if len(whereClauses) > 0 {
-		query += strings.Join(whereClauses, " AND ")
-	}
+	query += " AND p.classe_id IN (" + strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",") + ")"
 
 	rows, err = db.Query(query, queryArgs...)
 	if err != nil {
