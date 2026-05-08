@@ -126,16 +126,16 @@ func parseDate(s string) (string, error) {
 
 // UserInfo represents user info in BeamPass database
 type UserInfo struct {
-	UID          string `json:"uid"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Email        string `json:"email"`
-	OrchidId     string `json:"orchid_id"`
-	Organization string `json:"organization"`
-	City         string `json:"city"`
-	Zip          string `json:"zip"`
-	Country      string `json:"country"`
-	Department   string `json:"department"`
+	UID          string  `json:"uid"`
+	FirstName    string  `json:"first_name"`
+	LastName     string  `json:"last_name"`
+	Email        string  `json:"email"`
+	OrchidId     *string `json:"orchid_id"`
+	Organization *string `json:"organization"`
+	City         *string `json:"city"`
+	Zip          *string `json:"zip"`
+	Country      *string `json:"country"`
+	Department   *string `json:"department"`
 }
 
 func getAffiliations(uids []string) []UserInfo {
