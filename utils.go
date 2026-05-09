@@ -8,9 +8,10 @@ func composeAffiliation(user UserInfo) string {
 	dep := user.Department
 	city := user.City
 	state := user.State
+	org := user.Organization
 	zip := user.Zip
 	country := user.Country
-	aff := fmt.Sprintf("%s %s, Affiliation: %s, %s, %s, %s, %s %s, %s",
-		user.FirstName, user.LastName, *dep, *city, *state, *zip, *country)
+	aff := fmt.Sprintf("%s %s, Affiliation: %s, %s, %s, %s %s, %s",
+		user.FirstName, user.LastName, *dep, *org, *city, *state, *zip, *country)
 	return aff
 }
