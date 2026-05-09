@@ -149,7 +149,7 @@ SELECT DISTINCT
 p.classe_id, p.first_name, p.last_name,
 p.email, p.orcid_id, p.organization,
 p.city, r.name as state, p.zip,
-c.name as country,
+c.code3 as country,
 a.department 
 FROM person p
 JOIN affiliation a
@@ -159,8 +159,9 @@ ON p.country_id = c.id
 JOIN region r
 ON r.country_id = c.id
 WHERE a.archived_datetime IS NULL
-AND r.name IS NOT NULL      -- Filters out actual NULL values
-AND r.name <> '';           -- Filters out empty strings
+AND r.id = p.region_id
+AND r.name IS NOT NULL
+AND r.name <> ''
 `
 
 	var queryArgs []any
