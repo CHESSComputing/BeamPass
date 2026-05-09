@@ -145,7 +145,7 @@ func getAffiliations(uids []string) []UserInfo {
 	var rows *sql.Rows
 	var results []UserInfo
 	query := `
-SELECT
+SELECT DISCINT
 p.classe_id, p.first_name, p.last_name,
 p.email, p.orcid_id, p.organization,
 p.city, r.name as state, p.zip,
