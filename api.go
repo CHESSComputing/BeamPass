@@ -130,9 +130,11 @@ type UserInfo struct {
 	FirstName    string  `json:"first_name"`
 	LastName     string  `json:"last_name"`
 	Email        string  `json:"email"`
+	Affiliation  string  `json:"affiliation"`
 	OrchidId     *string `json:"orchid_id"`
 	Organization *string `json:"organization"`
 	City         *string `json:"city"`
+	State        *string `json:"state"`
 	Zip          *string `json:"zip"`
 	Country      *string `json:"country"`
 	Department   *string `json:"department"`
@@ -146,12 +148,15 @@ func getAffiliations(uids []string) []UserInfo {
 SELECT
 p.classe_id, p.first_name, p.last_name, p.email, p.orcid_id, p.organization, p.city, p.zip,
 c.name,
+r.name as state,
 a.department 
 FROM person p
 JOIN affiliation a
 ON p.id = a.person_id
 JOIN country c
 ON p.country_id = c.id
+JOIN region r
+ON r.country_id = c.id
 WHERE a.archived_datetime IS NULL
 `
 
@@ -173,10 +178,11 @@ WHERE a.archived_datetime IS NULL
 		var data UserInfo
 		if err := rows.Scan(&data.UID,
 			&data.FirstName, &data.LastName, &data.Email, &data.OrchidId,
-			&data.Organization, &data.City, &data.Zip, &data.Country,
+			&data.Organization, &data.City, &data.State, &data.Zip, &data.Country,
 			&data.Department); err != nil {
 			log.Printf("ERROR: scanning row: %v", err)
 		}
+		data.Affiliation = composeAffiliation(data)
 		results = append(results, data)
 	}
 	return results
