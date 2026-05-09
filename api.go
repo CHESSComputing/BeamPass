@@ -145,7 +145,7 @@ func getAffiliations(uids []string) []UserInfo {
 	var rows *sql.Rows
 	var results []UserInfo
 	query := `
-SELECT DISCINT
+SELECT DISTINCT
 p.classe_id, p.first_name, p.last_name,
 p.email, p.orcid_id, p.organization,
 p.city, r.name as state, p.zip,
@@ -159,6 +159,8 @@ ON p.country_id = c.id
 JOIN region r
 ON r.country_id = c.id
 WHERE a.archived_datetime IS NULL
+AND r.name IS NOT NULL      -- Filters out actual NULL values
+AND r.name <> '';           -- Filters out empty strings
 `
 
 	var queryArgs []any
