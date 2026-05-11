@@ -14,13 +14,15 @@ func strPtr(s *string) string {
 }
 
 // helper function to compose user affiliation from UserInfo
-// First Last, Affiliation: Department, University, City, State Zip, Country
+// First Last, Affiliation: University, City, State Zip, Country
 func composeAffiliation(user UserInfo) string {
 	parts := []string{}
 
-	if v := strPtr(user.Department); v != "" {
-		parts = append(parts, v)
-	}
+	/*
+		if v := strPtr(user.Department); v != "" {
+			parts = append(parts, v)
+		}
+	*/
 
 	if v := strPtr(user.Organization); v != "" {
 		parts = append(parts, v)

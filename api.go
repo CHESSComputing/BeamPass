@@ -171,7 +171,7 @@ AND r.name <> ''
 	for _, uid := range uids {
 		queryArgs = append(queryArgs, uid)
 	}
-	query += " AND p.classe_id IN (" + strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",") + ")"
+	query += " AND p.classe_id IN (" + strings.Join(slices.Repeat([]string{"?"}, len(uids)), ",") + ")" + "LIMIT 1"
 
 	rows, err = db.Query(query, queryArgs...)
 	if err != nil {
@@ -190,12 +190,6 @@ AND r.name <> ''
 		}
 		data.Affiliation = composeAffiliation(data)
 		results = append(results, data)
-	}
-	if len(results) > 0 {
-		var out []UserInfo
-		// only get last element and return it back
-		out = append(out, results[len(results)-1])
-		return out
 	}
 	return results
 }
