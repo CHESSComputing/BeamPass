@@ -146,11 +146,11 @@ func getAffiliations(uids []string) []UserInfo {
 	var results []UserInfo
 	query := `
 SELECT DISTINCT
-p.classe_id, p.first_name, p.last_name,
-p.email, p.orcid_id, p.organization,
-p.city, r.name as state, p.zip,
-c.code3 as country,
-a.department 
+       p.classe_id, p.first_name, p.last_name,
+       p.email, p.orcid_id, o.name as organization,
+       p.city, r.name as state, p.zip,
+       c.code3 as country,
+       a.department
 FROM person p
 JOIN affiliation a
 ON p.id = a.person_id
@@ -158,6 +158,8 @@ JOIN country c
 ON p.country_id = c.id
 JOIN region r
 ON r.country_id = c.id
+JOIN organization o
+ON a.organization_id = o.id
 WHERE a.archived_datetime IS NULL
 AND r.id = p.region_id
 AND r.name IS NOT NULL
