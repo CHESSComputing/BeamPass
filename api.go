@@ -191,5 +191,11 @@ AND r.name <> ''
 		data.Affiliation = composeAffiliation(data)
 		results = append(results, data)
 	}
+	if len(results) > 0 {
+		var out []UserInfo
+		// only get last element and return it back
+		out = append(out, results[len(results)-1])
+		return out
+	}
 	return results
 }
