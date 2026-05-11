@@ -49,7 +49,7 @@ func composeAffiliation(user UserInfo) string {
 	affiliation := strings.Join(parts, ", ")
 
 	return fmt.Sprintf(
-		"%s %s, Affiliation: %s",
+		"%s %s, %s",
 		user.FirstName,
 		user.LastName,
 		affiliation,
